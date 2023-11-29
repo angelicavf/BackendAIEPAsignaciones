@@ -11,9 +11,11 @@ const connectionData = {
 
 const client = new Client(connectionData);
 
+
 export async function connectToDB() {
     try {
         await client.connect();
+
         console.log('Conexión exitosa a la base de datos');
         return client;
     } catch (error) {

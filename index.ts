@@ -5,6 +5,11 @@ import actividadRoutes from "./routes/actividad.routes";
 import defaultRoutes from "./routes/default.routes";
 import agendaRoutes from "./routes/angenda.routes";
 import usuarioRoutes from "./routes/usuario.routes";
+import proyectoRoutes from "./routes/proyecto.routes";
+import comunaRoutes from "./routes/comuna.routes";
+import horaRoutes from "./routes/hora.routes";
+
+
 
 const server = new Server();
 
@@ -14,7 +19,9 @@ server.app.use('/', defaultRoutes);
 server.app.use('/actividad', actividadRoutes);
 server.app.use('/agenda', agendaRoutes);
 server.app.use('/usuario', usuarioRoutes);
-
+server.app.use('/proyecto', proyectoRoutes);
+server.app.use('/comuna', comunaRoutes);
+server.app.use('/hora', horaRoutes);
 
 const connectionData = {
     user: 'administrador',

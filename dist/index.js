@@ -11,6 +11,9 @@ const actividad_routes_1 = __importDefault(require("./routes/actividad.routes"))
 const default_routes_1 = __importDefault(require("./routes/default.routes"));
 const angenda_routes_1 = __importDefault(require("./routes/angenda.routes"));
 const usuario_routes_1 = __importDefault(require("./routes/usuario.routes"));
+const proyecto_routes_1 = __importDefault(require("./routes/proyecto.routes"));
+const comuna_routes_1 = __importDefault(require("./routes/comuna.routes"));
+const hora_routes_1 = __importDefault(require("./routes/hora.routes"));
 const server = new server_1.default();
 server.app.use(body_parser_1.default.urlencoded({ extended: true }));
 server.app.use(body_parser_1.default.json());
@@ -18,6 +21,9 @@ server.app.use('/', default_routes_1.default);
 server.app.use('/actividad', actividad_routes_1.default);
 server.app.use('/agenda', angenda_routes_1.default);
 server.app.use('/usuario', usuario_routes_1.default);
+server.app.use('/proyecto', proyecto_routes_1.default);
+server.app.use('/comuna', comuna_routes_1.default);
+server.app.use('/hora', hora_routes_1.default);
 const connectionData = {
     user: 'administrador',
     host: 'asignacionesdb.postgres.database.azure.com',
