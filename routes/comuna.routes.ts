@@ -1,17 +1,23 @@
 import { Request, Response, Router } from "express";
-import { connectToDB } from "../classes/dbConnection";
+import pool from "../classes/poolConnetion";
+
 
 const comunaRoutes = Router();
 
+
+
+
+
 comunaRoutes.get('/', async (req: Request, res: Response) => {
 
+
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const comuna = await client.query(
             `SELECT * FROM "COMUNA";`
         );
         console.log("Consulta Select comuna Ok:")
-
+        client.release();
         return res.json({ comuna });
 
     } catch (error) {

@@ -1,17 +1,19 @@
 import { Request, Response, Router } from "express";
 import { connectToDB } from "../classes/dbConnection";
+import pool from "../classes/poolConnetion";
 
 const proyectoRoutes = Router();
 
 proyectoRoutes.get('/', async (req: Request, res: Response) => {
 
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const proyectos = await client.query(
             `SELECT * FROM "PROYECTO";`
         );
         console.log("Consulta Select Proyectos Ok:")
 
+        client.release();
         return res.json({ proyectos });
 
     } catch (error) {

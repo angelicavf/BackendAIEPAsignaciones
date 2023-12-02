@@ -1,17 +1,19 @@
 import { Request, Response, Router } from "express";
 import { connectToDB } from "../classes/dbConnection";
+import pool from "../classes/poolConnetion";
 
 const horaRoutes = Router();
 
 horaRoutes.get('/', async (req: Request, res: Response) => {
 
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const hora = await client.query(
             `SELECT * FROM "HORA";`
         );
         console.log("Consulta Select hora Ok:")
 
+        client.release();
         return res.json({ hora });
 
     } catch (error) {

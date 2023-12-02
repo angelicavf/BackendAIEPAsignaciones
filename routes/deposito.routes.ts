@@ -4,11 +4,6 @@ import { QueryResult } from 'pg';
 
 const depositoRoutes = Router();
 
-depositoRoutes.post('/', async (req: Request, res: Response) => {
-
-    const client = await connectToDB();
-
-})
 
 async function insertDeposito(idActividad: number, DEP_MONTO: number, client: any): Promise<number> {
 
@@ -46,7 +41,7 @@ async function insertMotivoDeposito(MOT_ID: number, DM_MOT_ID: Number[], client:
         }
         console.log('Registro insertado con éxito en motivo_deposito:');
 
-        await client.end();
+
     } catch (error) {
         console.error('Error al insertar registro:', error);
         return -1;

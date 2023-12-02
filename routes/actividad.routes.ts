@@ -5,6 +5,7 @@ import * as nodemailer from 'nodemailer';
 import { connectToDB } from "../classes/dbConnection";
 import depositoRoutes from "./deposito.routes";
 import horaRoutes from "./hora.routes";
+import pool from "../classes/poolConnetion";
 
 const actividadRoutes = Router();
 
@@ -20,7 +21,7 @@ const transporter = nodemailer.createTransport({
 
 actividadRoutes.post('/', async (req: Request, res: Response) => {
 
-    const client = await connectToDB();
+    const client = await pool.connect();
     insertAgenda(req, client).then((idAgenda: Number) => {
         console.log(req.body.AH_HOR_ID)
         agendaHora(idAgenda, client, req.body.AH_HOR_ID)
@@ -32,6 +33,9 @@ actividadRoutes.post('/', async (req: Request, res: Response) => {
             depositoRoutes.insertDeposito(idActividad, req.body.DEP_MONTO, client).then(idDeposito => {
 
                 depositoRoutes.insertMotivoDeposito(idDeposito, req.body.DM_MOT_ID, client)
+
+                client.release();
+                res.json("ok");
             })
         })
     })
