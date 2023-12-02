@@ -8,11 +8,13 @@ import usuarioRoutes from "./routes/usuario.routes";
 import proyectoRoutes from "./routes/proyecto.routes";
 import comunaRoutes from "./routes/comuna.routes";
 import horaRoutes from "./routes/hora.routes";
+import cors from "cors";
 
 
 
 const server = new Server();
 
+server.app.use(cors());
 server.app.use(bodyParser.urlencoded({ extended: true }));
 server.app.use(bodyParser.json());
 server.app.use('/', defaultRoutes);
