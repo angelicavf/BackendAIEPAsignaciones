@@ -58,7 +58,7 @@ actividadRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, functi
         insertActividad(req, idAgenda, client).then(idActividad => {
             const enviarDeposito = { idAct: idActividad, DEP_MONTO: req.body.DEP_MONTO };
             deposito_routes_1.default.insertDeposito(idActividad, req.body.DEP_MONTO, client).then(idDeposito => {
-                deposito_routes_1.default.insertMotivoDeposito(idDeposito, req.body.DM_MOT_ID, client);
+                deposito_routes_1.default.insertMotivoDeposito(idDeposito, req.body.DEM_MOT_ID, client);
                 client.release();
                 res.json("ok");
             });
@@ -183,7 +183,6 @@ actividadRoutes.post('/iniciar', (req, res) => __awaiter(void 0, void 0, void 0,
                     WHERE "ACT_ID"=$2;`, ["Iniciada", ACT_ID]);
         console.log(ACT_ID);
         console.log("Cambio de estado Inicio con fecha actual :");
-        yield client.end();
     }
     catch (error) {
         console.log(error);
@@ -227,7 +226,6 @@ actividadRoutes.post('/finalizar', (req, res) => __awaiter(void 0, void 0, void 
         console.log(USR_Correo);
         console.log(ACT_ID);
         console.log("Cambio de estado finalizada con fecha actual :");
-        yield client.end();
     }
     catch (error) {
         console.log(error);

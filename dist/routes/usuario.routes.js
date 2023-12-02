@@ -8,13 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const dbConnection_1 = require("../classes/dbConnection");
+const poolConnetion_1 = __importDefault(require("../classes/poolConnetion"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const usuarioRoutes = (0, express_1.Router)();
 usuarioRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const client = yield (0, dbConnection_1.connectToDB)();
+        const client = yield poolConnetion_1.default.connect();
         const consulta = `INSERT INTO "USUARIO" ("USR_NOMBRES", "USR_AP_PATERNO", "USR_AP_MATERNO", "USR_RUT", "USR_CORREO", "USR_CONTRASENA", "USR_COM_ID", "USR_ROL_ID") VALUES  ($1,$2,$3,$4,$5,$6,$7,$8)RETURNING "AGE_ID";`;
         const valores = ['Carlos', 'Rodriguez', 'Perez', '11111111-1', 'crodiguez@example.com', 'contraseña_22', 1, 2]; // Valores para la inserción
         const resultado = yield client.query(consulta, valores);
@@ -25,10 +29,55 @@ usuarioRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function
             ok: true,
             resultado: 'post usuario ok'
         });
+        client.release();
     }
     catch (error) {
         console.error('Error al insertar registro:', error);
         res.status(500).json({ ok: false, error: 'Error al insertar registro' });
     }
 }));
+usuarioRoutes.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        const tokenInfo = yield encontrarUsuario(req.body.USR_CORREO, req.body.USR_CONTRASENA);
+        if (tokenInfo) {
+            res.status(200).json(tokenInfo); // Envía el token al cliente
+        }
+        else {
+            res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Error al procesar la solicitud' });
+    }
+}));
+function encontrarUsuario(correo, contrasena) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // ... Tu código para buscar el usuario por su nombre y contraseña ...
+            const client = yield poolConnetion_1.default.connect();
+            const resultado = yield client.query(`SELECT *
+                FROM "USUARIO" WHERE "USR_CORREO"=$1 AND "USR_CONTRASENA" = $2;`, [correo, contrasena]);
+            if (resultado.rows.length > 0) {
+                const usuarioEncontrado = resultado.rows[0];
+                // Verifica si la contraseña coincide
+                if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
+                    const token = jsonwebtoken_1.default.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secreto');
+                    console.log(token);
+                    return { token }; // Devuelve el token al cliente
+                }
+                else {
+                    return null; // Contraseña incorrecta
+                }
+            }
+            else {
+                return null; // Usuario no encontrado
+            }
+        }
+        catch (error) {
+            console.error('Error al buscar usuario:', error);
+            throw error; // Manejo de errores
+        }
+    });
+}
 exports.default = usuarioRoutes;

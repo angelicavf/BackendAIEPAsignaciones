@@ -36,7 +36,6 @@ function obtenerHorasDisponibles() {
             const consulta = `SELECT "HOR_ID" FROM "HORA"`; // Consulta para obtener los id de las horas
             const resultado = yield client.query(consulta);
             const horasDisponibles = resultado.rows.map((row) => row.id);
-            yield client.end(); // Cerrar conexión con la base de datos
             return horasDisponibles;
         }
         catch (error) {

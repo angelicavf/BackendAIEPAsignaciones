@@ -32,7 +32,7 @@ actividadRoutes.post('/', async (req: Request, res: Response) => {
 
             depositoRoutes.insertDeposito(idActividad, req.body.DEP_MONTO, client).then(idDeposito => {
 
-                depositoRoutes.insertMotivoDeposito(idDeposito, req.body.DM_MOT_ID, client)
+                depositoRoutes.insertMotivoDeposito(idDeposito, req.body.DEM_MOT_ID, client)
 
                 client.release();
                 res.json("ok");
@@ -205,7 +205,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
 
         console.log(ACT_ID)
         console.log("Cambio de estado Inicio con fecha actual :")
-        await client.end();
+
 
     } catch (error) {
         console.log(error);
@@ -265,7 +265,7 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
         console.log(ACT_ID)
         console.log("Cambio de estado finalizada con fecha actual :")
 
-        await client.end();
+
 
     } catch (error) {
         console.log(error);

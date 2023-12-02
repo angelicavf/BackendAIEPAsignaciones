@@ -31,7 +31,6 @@ async function obtenerHorasDisponibles(): Promise<number[]> {
 
         const horasDisponibles: number[] = resultado.rows.map((row: any) => row.id);
 
-        await client.end(); // Cerrar conexión con la base de datos
 
         return horasDisponibles;
     } catch (error) {
