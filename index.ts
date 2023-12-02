@@ -9,6 +9,7 @@ import proyectoRoutes from "./routes/proyecto.routes";
 import comunaRoutes from "./routes/comuna.routes";
 import horaRoutes from "./routes/hora.routes";
 import cors from "cors";
+import motivoroutes from "./routes/motivo.routes";
 
 
 
@@ -24,6 +25,7 @@ server.app.use('/usuario', usuarioRoutes);
 server.app.use('/proyecto', proyectoRoutes);
 server.app.use('/comuna', comunaRoutes);
 server.app.use('/hora', horaRoutes);
+server.app.use('/motivo', motivoroutes);
 
 const connectionData = {
     user: 'administrador',

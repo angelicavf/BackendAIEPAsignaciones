@@ -14,18 +14,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const poolConnetion_1 = __importDefault(require("../classes/poolConnetion"));
-const comunaRoutes = (0, express_1.Router)();
-comunaRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const motivoroutes = (0, express_1.Router)();
+motivoroutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const client = yield poolConnetion_1.default.connect();
-        const comuna = yield client.query(`SELECT * FROM "COMUNA";`);
-        console.log("Consulta Select comuna Ok:");
+        const motivo = yield client.query(`SELECT * FROM "MOTIVO";`);
+        console.log("Consulta Select motivo Ok:");
         client.release();
-        return res.json({ comuna });
+        return res.json({ motivo });
     }
     catch (error) {
         console.log(error);
         res.status(500).send(error);
     }
 }));
-exports.default = comunaRoutes;
+exports.default = motivoroutes;

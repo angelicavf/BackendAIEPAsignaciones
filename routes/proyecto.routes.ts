@@ -1,5 +1,4 @@
 import { Request, Response, Router } from "express";
-import { connectToDB } from "../classes/dbConnection";
 import pool from "../classes/poolConnetion";
 
 const proyectoRoutes = Router();

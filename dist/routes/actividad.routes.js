@@ -40,6 +40,7 @@ const { Client } = require('pg');
 const nodemailer = __importStar(require("nodemailer"));
 const dbConnection_1 = require("../classes/dbConnection");
 const deposito_routes_1 = __importDefault(require("./deposito.routes"));
+const poolConnetion_1 = __importDefault(require("../classes/poolConnetion"));
 const actividadRoutes = (0, express_1.Router)();
 //configuracion de google para envio de mail
 const transporter = nodemailer.createTransport({
@@ -50,7 +51,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 actividadRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const client = yield (0, dbConnection_1.connectToDB)();
+    const client = yield poolConnetion_1.default.connect();
     insertAgenda(req, client).then((idAgenda) => {
         console.log(req.body.AH_HOR_ID);
         agendaHora(idAgenda, client, req.body.AH_HOR_ID);
@@ -58,6 +59,8 @@ actividadRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, functi
             const enviarDeposito = { idAct: idActividad, DEP_MONTO: req.body.DEP_MONTO };
             deposito_routes_1.default.insertDeposito(idActividad, req.body.DEP_MONTO, client).then(idDeposito => {
                 deposito_routes_1.default.insertMotivoDeposito(idDeposito, req.body.DM_MOT_ID, client);
+                client.release();
+                res.json("ok");
             });
         });
     });

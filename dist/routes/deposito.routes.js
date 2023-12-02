@@ -10,11 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const dbConnection_1 = require("../classes/dbConnection");
 const depositoRoutes = (0, express_1.Router)();
-depositoRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const client = yield (0, dbConnection_1.connectToDB)();
-}));
 function insertDeposito(idActividad, DEP_MONTO, client) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -44,7 +40,6 @@ function insertMotivoDeposito(MOT_ID, DM_MOT_ID, client) {
                 const resultado = yield client.query(consulta, valores);
             }
             console.log('Registro insertado con éxito en motivo_deposito:');
-            yield client.end();
         }
         catch (error) {
             console.error('Error al insertar registro:', error);

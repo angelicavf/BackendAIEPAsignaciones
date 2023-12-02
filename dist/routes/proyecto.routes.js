@@ -8,15 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const dbConnection_1 = require("../classes/dbConnection");
+const poolConnetion_1 = __importDefault(require("../classes/poolConnetion"));
 const proyectoRoutes = (0, express_1.Router)();
 proyectoRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const client = yield (0, dbConnection_1.connectToDB)();
+        const client = yield poolConnetion_1.default.connect();
         const proyectos = yield client.query(`SELECT * FROM "PROYECTO";`);
         console.log("Consulta Select Proyectos Ok:");
+        client.release();
         return res.json({ proyectos });
     }
     catch (error) {
