@@ -95,7 +95,7 @@ usuarioRoutes.get('/', async (req: Request, res: Response) => {
     try {
         const client = await pool.connect();
         const usuarios = await client.query(
-            `SELECT * FROM "USUARIO";`
+            `SELECT "USR_NOMBRES" FROM "USUARIO";`
         );
         console.log("Consulta Select usuario Ok:")
 
