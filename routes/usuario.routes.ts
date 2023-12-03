@@ -42,7 +42,7 @@ usuarioRoutes.post('/login', async (req: Request, res: Response) => {
         if (tokenInfo) {
             res.status(200).json(tokenInfo); // Envía el token al cliente
         } else {
-            res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+            res.status(401).json(tokenInfo);
         }
     } catch (error) {
         res.status(500).json({ error: 'Error al procesar la solicitud' });
@@ -64,22 +64,50 @@ async function encontrarUsuario(correo: any, contrasena: any) {
 
             // Verifica si la contraseña coincide
             if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
-                const status = "ok"
+                const ok = true
                 const token = jwt.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
                 console.log("Login OK")
                 console.log(token)
                 client.release();
-                return { token, status }; // Devuelve el token al cliente
+                return { token, ok }; // Devuelve el token al cliente
             } else {
-                return null; // Contraseña incorrecta
+                const ok = false
+                const token = null
+                console.log("esta pasando aqui")
+                client.release();
+                return { token, ok }; // Contraseña incorrecta
             }
         } else {
-            return null; // Usuario no encontrado
+            const ok = false
+            const token = null
+            client.release();
+            console.log("esta pasando aqui")
+            return { token, ok };  // Usuario no encontrado
         }
     } catch (error) {
         console.error('Error al buscar usuario:', error);
         throw error; // Manejo de errores
     }
 }
+
+usuarioRoutes.get('/', async (req: Request, res: Response) => {
+
+    try {
+        const client = await pool.connect();
+        const usuarios = await client.query(
+            `SELECT * FROM "USUARIO";`
+        );
+        console.log("Consulta Select usuario Ok:")
+
+        client.release();
+        return res.json({ usuarios });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error)
+    }
+})
+
+
 
 export default usuarioRoutes;

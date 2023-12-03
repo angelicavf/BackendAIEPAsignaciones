@@ -44,7 +44,7 @@ usuarioRoutes.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, fun
             res.status(200).json(tokenInfo); // Envía el token al cliente
         }
         else {
-            res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+            res.status(401).json(tokenInfo);
         }
     }
     catch (error) {
@@ -62,18 +62,27 @@ function encontrarUsuario(correo, contrasena) {
                 const usuarioEncontrado = resultado.rows[0];
                 // Verifica si la contraseña coincide
                 if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
-                    const status = "ok";
+                    const ok = true;
                     const token = jsonwebtoken_1.default.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
                     console.log("Login OK");
                     console.log(token);
-                    return { token, status }; // Devuelve el token al cliente
+                    client.release();
+                    return { token, ok }; // Devuelve el token al cliente
                 }
                 else {
-                    return null; // Contraseña incorrecta
+                    const ok = false;
+                    const token = null;
+                    console.log("esta pasando aqui");
+                    client.release();
+                    return { token, ok }; // Contraseña incorrecta
                 }
             }
             else {
-                return null; // Usuario no encontrado
+                const ok = false;
+                const token = null;
+                client.release();
+                console.log("esta pasando aqui");
+                return { token, ok }; // Usuario no encontrado
             }
         }
         catch (error) {
@@ -82,4 +91,17 @@ function encontrarUsuario(correo, contrasena) {
         }
     });
 }
+usuarioRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        const usuarios = yield client.query(`SELECT * FROM "USUARIO";`);
+        console.log("Consulta Select usuario Ok:");
+        client.release();
+        return res.json({ usuarios });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}));
 exports.default = usuarioRoutes;
