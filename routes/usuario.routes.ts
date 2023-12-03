@@ -64,9 +64,11 @@ async function encontrarUsuario(correo: any, contrasena: any) {
 
             // Verifica si la contraseña coincide
             if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
-                const token = jwt.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secreto');
+                const status = "ok"
+                const token = jwt.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
+                console.log("Login OK")
                 console.log(token)
-                return { token }; // Devuelve el token al cliente
+                return { token, status }; // Devuelve el token al cliente
             } else {
                 return null; // Contraseña incorrecta
             }

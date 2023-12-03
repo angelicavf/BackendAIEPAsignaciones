@@ -62,9 +62,11 @@ function encontrarUsuario(correo, contrasena) {
                 const usuarioEncontrado = resultado.rows[0];
                 // Verifica si la contraseña coincide
                 if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
-                    const token = jsonwebtoken_1.default.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secreto');
+                    const status = "ok";
+                    const token = jsonwebtoken_1.default.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
+                    console.log("Login OK");
                     console.log(token);
-                    return { token }; // Devuelve el token al cliente
+                    return { token, status }; // Devuelve el token al cliente
                 }
                 else {
                     return null; // Contraseña incorrecta
