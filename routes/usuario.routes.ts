@@ -68,6 +68,7 @@ async function encontrarUsuario(correo: any, contrasena: any) {
                 const token = jwt.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
                 console.log("Login OK")
                 console.log(token)
+                client.release();
                 return { token, status }; // Devuelve el token al cliente
             } else {
                 return null; // Contraseña incorrecta
