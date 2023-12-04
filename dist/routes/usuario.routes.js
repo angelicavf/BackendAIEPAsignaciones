@@ -94,7 +94,9 @@ function encontrarUsuario(correo, contrasena) {
 usuarioRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const client = yield poolConnetion_1.default.connect();
-        const usuarios = yield client.query(`SELECT * FROM "USUARIO";`);
+        const usuarios = yield client.query(`SELECT u."USR_NOMBRES", u."USR_AP_PATERNO",u."USR_CORREO",u."USR_RUT",rol."ROL_NOMBRE"
+            FROM "USUARIO" u, "ROL" rol
+                WHERE u."USR_ROL_ID" = rol."ROL_ID";`);
         console.log("Consulta Select usuario Ok:");
         client.release();
         return res.json({ usuarios });
