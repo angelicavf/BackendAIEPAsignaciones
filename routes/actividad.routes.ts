@@ -47,9 +47,17 @@ actividadRoutes.get('/', async (req: Request, res: Response) => {
     try {
         const client = await pool.connect();
         const actividad = await client.query(
-            `SELECT USR."USR_NOMBRES", USR."USR_AP_PATERNO", COM."COM_NOMBRE"
-            FROM "USUARIO" USR, "COMUNA" COM
-                WHERE USR."USR_COM_ID"= COM."COM_ID"`
+            `SELECT coalesce(U2."USR_ID", p."USR_ID") as "USR_ID", coalesce(U2."USR_NOMBRES", p."USR_NOMBRES") as "USR_NOMBRES", p."ACT_NOMBRE",p.HORAS
+            FROM "USUARIO" U2
+            LEFT JOIN (SELECT U."USR_ID", "AGE_FECHA",U."USR_NOMBRES", A."ACT_NOMBRE", array_to_json(array_agg(H.*)) as HORAS
+                  FROM "AGENDA"
+                           LEFT JOIN public."ACTIVIDAD" A on "AGENDA"."AGE_ID" = A."ACT_AGE_ID"
+                           LEFT JOIN public."USUARIO" U on U."USR_ID" = "AGENDA"."AGE_USR_ID"
+                           LEFT JOIN public."AGENDA_HORA" AH on "AGENDA"."AGE_ID" = AH."AH_AGE_ID"
+                           LEFT JOIN public."HORA" H on AH."AH_HOR_ID" = H."HOR_ID"
+                  WHERE "AGE_FECHA" = '2023-12-07'
+                  GROUP BY U."USR_ID", U."USR_NOMBRES", A."ACT_NOMBRE", "AGE_FECHA") as p on U2."USR_ID" = p."USR_ID"
+            order by U2."USR_ID"`
         );
         console.log("Consulta Select Realizada:")
         client.release();
