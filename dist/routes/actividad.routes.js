@@ -68,9 +68,11 @@ actividadRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, functi
 actividadRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const client = yield (0, dbConnection_1.connectToDB)();
-        const actividades = yield client.query(`SELECT * FROM "AGENDA";`);
+        const actividad = yield client.query(`SELECT USR."USR_NOMBRES", USR."USR_AP_PATERNO", COM."COM_NOMBRE"
+            FROM "USUARIO" USR, "COMUNA" COM
+                WHERE USR."USR_COM_ID"= COM."COM_ID"`);
         console.log("Consulta Select Realizada:");
-        res.json({ actividades });
+        res.json({ actividad });
     }
     catch (error) {
         console.log(error);

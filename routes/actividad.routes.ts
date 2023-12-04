@@ -46,11 +46,13 @@ actividadRoutes.get('/', async (req: Request, res: Response) => {
 
     try {
         const client = await connectToDB();
-        const actividades = await client.query(
-            `SELECT * FROM "AGENDA";`
+        const actividad = await client.query(
+            `SELECT USR."USR_NOMBRES", USR."USR_AP_PATERNO", COM."COM_NOMBRE"
+            FROM "USUARIO" USR, "COMUNA" COM
+                WHERE USR."USR_COM_ID"= COM."COM_ID"`
         );
         console.log("Consulta Select Realizada:")
-        res.json({ actividades });
+        res.json({ actividad });
 
 
     } catch (error) {
