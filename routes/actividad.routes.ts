@@ -45,13 +45,14 @@ actividadRoutes.post('/', async (req: Request, res: Response) => {
 actividadRoutes.get('/', async (req: Request, res: Response) => {
 
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const actividad = await client.query(
             `SELECT USR."USR_NOMBRES", USR."USR_AP_PATERNO", COM."COM_NOMBRE"
             FROM "USUARIO" USR, "COMUNA" COM
                 WHERE USR."USR_COM_ID"= COM."COM_ID"`
         );
         console.log("Consulta Select Realizada:")
+        client.release();
         res.json({ actividad });
 
 
