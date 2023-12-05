@@ -65,7 +65,8 @@ actividadRoutes.post('/', (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     });
 }));
-actividadRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+actividadRoutes.post('/lista', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body.AGE_FECHA);
     try {
         const client = yield poolConnetion_1.default.connect();
         const actividad = yield client.query(`select h.*, R."REG_NOMBRE"
@@ -88,14 +89,14 @@ actividadRoutes.get('/', (req, res) => __awaiter(void 0, void 0, void 0, functio
                                                LEFT JOIN public."USUARIO" U on U."USR_ID" = "AGENDA"."AGE_USR_ID"
                                                LEFT JOIN public."AGENDA_HORA" AH on "AGENDA"."AGE_ID" = AH."AH_AGE_ID"
                                                LEFT JOIN public."HORA" H on AH."AH_HOR_ID" = H."HOR_ID"
-                                      WHERE "AGE_FECHA" = '2023-12-07'
+                                      WHERE "AGE_FECHA" = $1
                                       GROUP BY U."USR_ID", U."USR_AP_PATERNO", U."USR_COM_ID", "AGE_FECHA", U."USR_NOMBRES",
                                                A."ACT_ESTADO", A."ACT_NOMBRE") as p
                                      on U2."USR_ID" = p."USR_ID"
                   group by coalesce(U2."USR_ID", p."USR_ID"), coalesce(U2."USR_NOMBRES", p."USR_NOMBRES"),
                            coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO"), coalesce(U2."USR_COM_ID", p."USR_COM_ID")) as h
             left join "COMUNA" on "COM_ID" = "USR_COM_ID"
-            left join public."REGION" R on R."REG_ID" = "COMUNA"."COM_REG_ID"`);
+            left join public."REGION" R on R."REG_ID" = "COMUNA"."COM_REG_ID"`, [req.body.AGE_FECHA]);
         console.log("Consulta Select Realizada:");
         client.release();
         res.json({ actividad });

@@ -42,8 +42,12 @@ actividadRoutes.post('/', async (req: Request, res: Response) => {
 })
 
 
-actividadRoutes.get('/', async (req: Request, res: Response) => {
 
+
+
+actividadRoutes.post('/lista', async (req: Request, res: Response) => {
+
+    console.log(req.body.AGE_FECHA)
     try {
         const client = await pool.connect();
         const actividad = await client.query(
