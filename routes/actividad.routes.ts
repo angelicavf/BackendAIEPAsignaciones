@@ -47,19 +47,35 @@ actividadRoutes.get('/', async (req: Request, res: Response) => {
     try {
         const client = await pool.connect();
         const actividad = await client.query(
-            `SELECT coalesce(U2."USR_ID", p."USR_ID") as "USR_ID", coalesce(U2."USR_NOMBRES", p."USR_NOMBRES") as "USR_NOMBRES",
-            p."ACT_NOMBRE", P."ACT_ESTADO",
-            p.HORAS
-     FROM "USUARIO" U2
-     LEFT JOIN (SELECT U."USR_ID", "AGE_FECHA",U."USR_NOMBRES", A."ACT_ESTADO", A."ACT_NOMBRE", json_agg(H."HOR_VALOR") as HORAS
-           FROM "AGENDA"
-                    LEFT JOIN public."ACTIVIDAD" A on "AGENDA"."AGE_ID" = A."ACT_AGE_ID"
-                    LEFT JOIN public."USUARIO" U on U."USR_ID" = "AGENDA"."AGE_USR_ID"
-                    LEFT JOIN public."AGENDA_HORA" AH on "AGENDA"."AGE_ID" = AH."AH_AGE_ID"
-                    LEFT JOIN public."HORA" H on AH."AH_HOR_ID" = H."HOR_ID"
-           WHERE "AGE_FECHA" = '2023-12-07'
-           GROUP BY U."USR_ID", U."USR_NOMBRES", A."ACT_NOMBRE", "AGE_FECHA", A."ACT_ESTADO") as p on U2."USR_ID" = p."USR_ID"
-     order by U2."USR_ID"`
+            `select h.*, R."REG_NOMBRE"
+            from (SELECT coalesce(U2."USR_ID", p."USR_ID")                 as "USR_ID",
+                         coalesce(U2."USR_NOMBRES", p."USR_NOMBRES")       as "USR_NOMBRES",
+                         coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO") as "USR_AP_PATERNO",
+                         coalesce(U2."USR_COM_ID", p."USR_COM_ID")         as "USR_COM_ID",
+                         json_agg(p.*)                                     as actividades
+                  FROM "USUARIO" U2
+                           LEFT JOIN (SELECT U."USR_ID",
+                                             U."USR_AP_PATERNO",
+                                             U."USR_COM_ID",
+                                             "AGE_FECHA",
+                                             U."USR_NOMBRES",
+                                             A."ACT_ESTADO",
+                                             A."ACT_NOMBRE",
+                                             json_agg(H."HOR_VALOR") as HORAS
+                                      FROM "AGENDA"
+                                               LEFT JOIN public."ACTIVIDAD" A on "AGENDA"."AGE_ID" = A."ACT_AGE_ID"
+                                               LEFT JOIN public."USUARIO" U on U."USR_ID" = "AGENDA"."AGE_USR_ID"
+                                               LEFT JOIN public."AGENDA_HORA" AH on "AGENDA"."AGE_ID" = AH."AH_AGE_ID"
+                                               LEFT JOIN public."HORA" H on AH."AH_HOR_ID" = H."HOR_ID"
+                                      WHERE "AGE_FECHA" = $1
+                                      GROUP BY U."USR_ID", U."USR_AP_PATERNO", U."USR_COM_ID", "AGE_FECHA", U."USR_NOMBRES",
+                                               A."ACT_ESTADO", A."ACT_NOMBRE") as p
+                                     on U2."USR_ID" = p."USR_ID"
+                  group by coalesce(U2."USR_ID", p."USR_ID"), coalesce(U2."USR_NOMBRES", p."USR_NOMBRES"),
+                           coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO"), coalesce(U2."USR_COM_ID", p."USR_COM_ID")) as h
+            left join "COMUNA" on "COM_ID" = "USR_COM_ID"
+            left join public."REGION" R on R."REG_ID" = "COMUNA"."COM_REG_ID"`,
+            [req.body.AGE_FECHA]
         );
         console.log("Consulta Select Realizada:")
         client.release();
