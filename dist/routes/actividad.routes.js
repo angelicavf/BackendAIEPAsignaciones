@@ -83,6 +83,7 @@ actividadRoutes.post('/lista', (req, res) => __awaiter(void 0, void 0, void 0, f
                                              U."USR_NOMBRES",
                                              A."ACT_ESTADO",
                                              A."ACT_NOMBRE",
+                                             A."ACT_ID",
                                              json_agg(H."HOR_VALOR") as HORAS
                                       FROM "AGENDA"
                                                LEFT JOIN public."ACTIVIDAD" A on "AGENDA"."AGE_ID" = A."ACT_AGE_ID"
@@ -91,7 +92,7 @@ actividadRoutes.post('/lista', (req, res) => __awaiter(void 0, void 0, void 0, f
                                                LEFT JOIN public."HORA" H on AH."AH_HOR_ID" = H."HOR_ID"
                                       WHERE "AGE_FECHA" = $1
                                       GROUP BY U."USR_ID", U."USR_AP_PATERNO", U."USR_COM_ID", "AGE_FECHA", U."USR_NOMBRES",
-                                               A."ACT_ESTADO", A."ACT_NOMBRE") as p
+                                               A."ACT_ESTADO", A."ACT_NOMBRE", A."ACT_ID") as p
                                      on U2."USR_ID" = p."USR_ID"
                   group by coalesce(U2."USR_ID", p."USR_ID"), coalesce(U2."USR_NOMBRES", p."USR_NOMBRES"),
                            coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO"), coalesce(U2."USR_COM_ID", p."USR_COM_ID")) as h
