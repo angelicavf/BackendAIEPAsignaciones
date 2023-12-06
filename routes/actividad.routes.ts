@@ -220,7 +220,7 @@ async function agendaHora(AGE_ID: any, client: any, AH_HOR_ID: Number[]) {
 
 actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const ACT_ID = req.body.ACT_ID;
         const finicio = await client.query(
             `UPDATE "ACTIVIDAD"
@@ -236,7 +236,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
             ["Iniciada", ACT_ID]
         );
 
-
+        client.release();
         console.log(ACT_ID)
         console.log("Cambio de estado Inicio con fecha actual :")
 
@@ -249,7 +249,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
 
 actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
     try {
-        const client = await connectToDB();
+        const client = await pool.connect();
         const ACT_ID = req.body.ACT_ID;
         const finicio = await client.query(
             `UPDATE "ACTIVIDAD"
@@ -298,7 +298,7 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
         console.log(USR_Correo)
         console.log(ACT_ID)
         console.log("Cambio de estado finalizada con fecha actual :")
-
+        client.release();
 
 
     } catch (error) {
@@ -306,6 +306,75 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
         res.status(500).send(error)
     }
 })
+
+
+actividadRoutes.post('/modal', async (req: Request, res: Response) => {
+    try {
+        const client = await pool.connect();
+        console.log(req.body)
+        const ACT_ID = req.body.ACT_ID;
+        const data_act = await client.query(
+            `SELECT u."USR_NOMBRES", u."USR_AP_PATERNO",a."ACT_NOMBRE",a."ACT_NOMBRE_SOLICITANTE", a."ACT_DESCRIPCION", 
+            a."ACT_DIRECCION", d."DEP_MONTO" , c."CLI_NOMBRE"
+        FROM "ACTIVIDAD" a, "USUARIO" u, "AGENDA" age, "DEPOSITO" d,  "PROYECTO" p,  "CLIENTE" c
+            WHERE u."USR_ID" = age."AGE_USR_ID"
+            AND a."ACT_AGE_ID"= age."AGE_ID"
+            AND d."DEP_ACT_ID"= a."ACT_ID"
+            AND a."ACT_PRO_ID"= p."PRO_ID"
+        AND c."CLI_ID"= p."PRO_CLI_ID"
+            AND a."ACT_ID" = $1`,
+            [ACT_ID]
+        );
+
+        client.release();
+        res.json({ data_act });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error)
+    }
+})
+
+actividadRoutes.post('/auditor', async (req: Request, res: Response) => {
+    try {
+        const client = await pool.connect();
+        console.log(req.body)
+        const AGE_FECHA = req.body.AGE_FECHA;
+        const auditor = await client.query(
+            `SELECT 
+            U."USR_NOMBRES",
+            U."USR_AP_PATERNO",
+            a."ACT_NOMBRE",
+            a."ACT_DESCRIPCION",
+            a."ACT_NOMBRE_SOLICITANTE",
+            p."PRO_NOMBRE",
+            cl."CLI_NOMBRE",
+            c."CAL_COMENTARIO",
+            tc."TC_NOMBRE"
+            
+            FROM "ACTIVIDAD" a left join "CALIFICACION" c on a."ACT_ID" = c."CAL_ACT_ID"
+                left join "AGENDA" ag on a."ACT_AGE_ID" = ag."AGE_ID"
+                left join "USUARIO" u on ag."AGE_USR_ID" = u."USR_ID"
+                left join "PROYECTO" p on a."ACT_PRO_ID" = p."PRO_ID"
+                left join "CLIENTE" cl on p."PRO_CLI_ID" = cl."CLI_ID"
+                LEFT join "TIPO_CALIFICACION" tc on c."CAL_TC_ID" = tc."TC_ID"
+            WHERE "ACT_ESTADO"='Finalizada' AND ag."AGE_FECHA"= $1`,
+            [AGE_FECHA]
+        );
+
+        client.release();
+        res.json({ auditor });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error)
+    }
+})
+
+
+
 
 
 export default actividadRoutes;
