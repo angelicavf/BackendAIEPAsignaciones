@@ -269,7 +269,7 @@ actividadRoutes.post('/modal', (req, res) => __awaiter(void 0, void 0, void 0, f
         console.log(req.body);
         const ACT_ID = req.body.ACT_ID;
         const data_act = yield client.query(`SELECT u."USR_NOMBRES", u."USR_AP_PATERNO",a."ACT_NOMBRE",a."ACT_NOMBRE_SOLICITANTE", a."ACT_DESCRIPCION", 
-            a."ACT_DIRECCION", d."DEP_MONTO" , c."CLI_NOMBRE"
+            a."ACT_DIRECCION", d."DEP_MONTO" , c."CLI_NOMBRE", a."ACT_ID"
         FROM "ACTIVIDAD" a, "USUARIO" u, "AGENDA" age, "DEPOSITO" d,  "PROYECTO" p,  "CLIENTE" c
             WHERE u."USR_ID" = age."AGE_USR_ID"
             AND a."ACT_AGE_ID"= age."AGE_ID"
@@ -300,7 +300,6 @@ actividadRoutes.post('/auditor', (req, res) => __awaiter(void 0, void 0, void 0,
             cl."CLI_NOMBRE",
             c."CAL_COMENTARIO",
             tc."TC_NOMBRE"
-            
             FROM "ACTIVIDAD" a left join "CALIFICACION" c on a."ACT_ID" = c."CAL_ACT_ID"
                 left join "AGENDA" ag on a."ACT_AGE_ID" = ag."AGE_ID"
                 left join "USUARIO" u on ag."AGE_USR_ID" = u."USR_ID"
@@ -310,6 +309,87 @@ actividadRoutes.post('/auditor', (req, res) => __awaiter(void 0, void 0, void 0,
             WHERE "ACT_ESTADO"='Finalizada' AND ag."AGE_FECHA"= $1`, [AGE_FECHA]);
         client.release();
         res.json({ auditor });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}));
+actividadRoutes.get('/deposito', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        console.log(req.body);
+        const deposito = yield client.query(`SELECT 
+            U."USR_NOMBRES",
+            a."ACT_ID",
+            U."USR_AP_PATERNO",
+            a."ACT_NOMBRE",
+            d."DEP_FECHA",
+            d."DEP_ESTADO",
+            d."DEP_MONTO",
+            m."MOT_NOMBRE"
+            FROM "ACTIVIDAD" a left join "CALIFICACION" c on a."ACT_ID" = c."CAL_ACT_ID"
+                left join "AGENDA" ag on a."ACT_AGE_ID" = ag."AGE_ID"
+                left join "USUARIO" u on ag."AGE_USR_ID" = u."USR_ID"
+                left join "PROYECTO" p on a."ACT_PRO_ID" = p."PRO_ID"
+                left join "CLIENTE" cl on p ."PRO_CLI_ID" = cl."CLI_ID"
+                left join "DEPOSITO" d on a."ACT_ID" = d."DEP_ACT_ID"
+                left join "DEPOSITO_MOTIVO" dm on d."DEP_ID"= dm."DEM_DEP_ID"
+                left join "MOTIVO" m on dm."DEM_MOT_ID" = m."MOT_ID"
+                LEFT join "TIPO_CALIFICACION" tc on c."CAL_TC_ID" = tc."TC_ID"
+            WHERE "DEP_ESTADO"='Pendiente'`);
+        client.release();
+        res.json({ deposito });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}));
+actividadRoutes.get('/estadistica', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        const fecha = new Date().getDate();
+        console.log(fecha);
+        const estadistica = yield client.query(`SELECT * FROM (
+                SELECT 'Finalizada'          as estado,
+                       coalesce(count(*), 0) as cuenta
+                FROM "ACTIVIDAD"
+                WHERE "ACT_ESTADO" = 'Finalizada'
+                  AND extract('DAY' FROM "ACT_FIN") = 10
+                UNION
+                SELECT 'Iniciada'            as estado,
+                       coalesce(count(*), 0) as cuenta
+                FROM "ACTIVIDAD"
+                WHERE "ACT_ESTADO" = 'Iniciada'
+                  AND extract('DAY' FROM "ACT_INICIO") = 10
+                UNION
+                SELECT 'Pendiente'           as estado,
+                       coalesce(count(*), 0) as cuenta
+                FROM "ACTIVIDAD"
+                    left join public."AGENDA" A on A."AGE_ID" = "ACTIVIDAD"."ACT_AGE_ID"
+                WHERE "ACT_ESTADO" = 'Finalizada'
+                AND extract('DAY' FROM "AGE_FECHA") = 7) AS p
+                order by  estado
+                `);
+        client.release();
+        res.json({ estadistica });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}));
+actividadRoutes.post('/resdeposito', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        const ACT_ID = req.body.ACT_ID;
+        const finicio = yield client.query(`UPDATE "DEPOSITO"
+             SET "DEP_ESTADO"=$1
+             WHERE "DEP_ACT_ID"=$2;`, ["Realizado", ACT_ID]);
+        client.release();
+        console.log(ACT_ID);
+        console.log("Cambio de estado realizado:");
     }
     catch (error) {
         console.log(error);

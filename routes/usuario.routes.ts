@@ -55,12 +55,22 @@ async function encontrarUsuario(correo: any, contrasena: any) {
         const client = await pool.connect();
         const resultado = await client.query(
             `SELECT *
-                FROM "USUARIO" WHERE "USR_CORREO"=$1 AND "USR_CONTRASENA" = $2;`,
+                FROM "USUARIO" WHERE "USR_CORREO"=$1 
+                AND "USR_CONTRASENA" = $2;`,
             [correo, contrasena]);
+
+
 
 
         if (resultado.rows.length > 0) {
             const usuarioEncontrado = resultado.rows[0];
+
+
+            const rol = await client.query(
+                `SELECT r."ROL_NOMBRE", u."USR_NOMBRES"
+                    FROM "ROL" r, "USUARIO" u WHERE "USR_CORREO"=$1 
+                    AND u."USR_ROL_ID" = r."ROL_ID";`,
+                [correo]);
 
             // Verifica si la contraseña coincide
             if (usuarioEncontrado.USR_CONTRASENA == contrasena) {
@@ -68,8 +78,10 @@ async function encontrarUsuario(correo: any, contrasena: any) {
                 const token = jwt.sign({ correo: usuarioEncontrado.USR_CORREO }, 'secretoAsignaciones');
                 console.log("Login OK")
                 console.log(token)
+                const rol_nombre = rol.rows[0]
+                console.log(rol.rows[0])
                 client.release();
-                return { token, ok }; // Devuelve el token al cliente
+                return { token, ok, rol_nombre }; // Devuelve el token al cliente
             } else {
                 const ok = false
                 const token = null

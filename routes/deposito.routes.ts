@@ -48,4 +48,6 @@ async function insertMotivoDeposito(MOT_ID: number, DM_MOT_ID: Number[], client:
     }
 }
 
+
+
 export default { depositoRoutes, insertDeposito, insertMotivoDeposito };
