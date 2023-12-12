@@ -213,7 +213,6 @@ actividadRoutes.post('/iniciar', (req, res) => __awaiter(void 0, void 0, void 0,
         client.release();
         console.log("ID BK", ACT_ID);
         console.log("Cambio de estado Inicio con fecha actual :");
-        res: true;
     }
     catch (error) {
         console.log(error);
