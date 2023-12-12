@@ -243,6 +243,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
         console.log("Cambio de estado Inicio con fecha actual :")
 
 
+
     } catch (error) {
         console.log(error);
         res.status(500).send(error)
@@ -286,7 +287,7 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
             to: USR_Correo,
             subject: `Evaluación de Visita Programada - Caso ${ACT_NOMBRE}`,
             html: `
-            <p>Estimado usuario,</p>
+            <p>Estimado/a usuario/a,</p>
             <p>De acuerdo a la atención efectuada en terreno el día de hoy, se comparte enlace para realizar evaluación de atención.</p>
             <p>Enlace: </p>
             <br>
@@ -358,6 +359,8 @@ actividadRoutes.post('/auditor', async (req: Request, res: Response) => {
             a."ACT_NOMBRE",
             a."ACT_DESCRIPCION",
             a."ACT_NOMBRE_SOLICITANTE",
+            a."ACT_CORREO_SOLICITANTE",
+            a."ACT_TELEFONO_SOLICITANTE",
             p."PRO_NOMBRE",
             cl."CLI_NOMBRE",
             c."CAL_COMENTARIO",
@@ -518,7 +521,8 @@ actividadRoutes.post('/misactividades', async (req: Request, res: Response) => {
             AND a."ACT_PRO_ID"= p."PRO_ID"
         AND c."CLI_ID"= p."PRO_CLI_ID"
         AND a."ACT_COM_ID"= co."COM_ID"
-            AND u."USR_ID" = $1`, [USR_ID]
+            AND u."USR_ID" = $1
+            AND a."ACT_ESTADO" != 'Finalizada' `, [USR_ID]
 
 
         );
