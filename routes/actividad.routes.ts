@@ -241,6 +241,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
         client.release();
         console.log("ID BK", ACT_ID)
         console.log("Cambio de estado Inicio con fecha actual :")
+        res.json({ message:'ok' });
 
 
 
@@ -302,6 +303,7 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
         console.log(ACT_ID)
         console.log("Cambio de estado finalizada con fecha actual :")
         client.release();
+        res.json({ message:'ok' });
 
 
     } catch (error) {

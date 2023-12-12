@@ -213,6 +213,7 @@ actividadRoutes.post('/iniciar', (req, res) => __awaiter(void 0, void 0, void 0,
         client.release();
         console.log("ID BK", ACT_ID);
         console.log("Cambio de estado Inicio con fecha actual :");
+        res.json({ message: 'ok' });
     }
     catch (error) {
         console.log(error);
@@ -257,6 +258,7 @@ actividadRoutes.post('/finalizar', (req, res) => __awaiter(void 0, void 0, void 
         console.log(ACT_ID);
         console.log("Cambio de estado finalizada con fecha actual :");
         client.release();
+        res.json({ message: 'ok' });
     }
     catch (error) {
         console.log(error);
