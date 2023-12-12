@@ -67,7 +67,7 @@ async function encontrarUsuario(correo: any, contrasena: any) {
 
 
             const rol = await client.query(
-                `SELECT r."ROL_NOMBRE", u."USR_NOMBRES"
+                `SELECT r."ROL_NOMBRE", u."USR_NOMBRES", u."USR_ID"
                     FROM "ROL" r, "USUARIO" u WHERE "USR_CORREO"=$1 
                     AND u."USR_ROL_ID" = r."ROL_ID";`,
                 [correo]);

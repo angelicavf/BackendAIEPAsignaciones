@@ -68,10 +68,9 @@ actividadRoutes.post('/lista', (req, res) => __awaiter(void 0, void 0, void 0, f
     console.log(req.body.AGE_FECHA);
     try {
         const client = yield poolConnetion_1.default.connect();
-        const actividad = yield client.query(`select h.*, R."REG_NOMBRE"
+        const actividad = yield client.query(`select h.*, R."REG_NOMBRE", "COM_NOMBRE"
             from (SELECT coalesce(U2."USR_ID", p."USR_ID")                 as "USR_ID",
-                         coalesce(U2."USR_NOMBRES", p."USR_NOMBRES")       as "USR_NOMBRES",
-                         coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO") as "USR_AP_PATERNO",
+                         coalesce((U2."USR_NOMBRES" || ' ' || U2."USR_AP_PATERNO"), p."USR_NOMBRES") as "USR_NOMBRES",
                          coalesce(U2."USR_COM_ID", p."USR_COM_ID")         as "USR_COM_ID",
                          json_agg(p.*)                                     as actividades
                   FROM "USUARIO" U2
@@ -93,10 +92,11 @@ actividadRoutes.post('/lista', (req, res) => __awaiter(void 0, void 0, void 0, f
                                       GROUP BY U."USR_ID", U."USR_AP_PATERNO", U."USR_COM_ID", "AGE_FECHA", U."USR_NOMBRES",
                                                A."ACT_ESTADO", A."ACT_NOMBRE", A."ACT_ID") as p
                                      on U2."USR_ID" = p."USR_ID"
-                  group by coalesce(U2."USR_ID", p."USR_ID"), coalesce(U2."USR_NOMBRES", p."USR_NOMBRES"),
+                  group by coalesce(U2."USR_ID", p."USR_ID"), coalesce((U2."USR_NOMBRES" || ' ' || U2."USR_AP_PATERNO"), p."USR_NOMBRES"),
                            coalesce(U2."USR_AP_PATERNO", p."USR_AP_PATERNO"), coalesce(U2."USR_COM_ID", p."USR_COM_ID")) as h
             left join "COMUNA" on "COM_ID" = "USR_COM_ID"
-            left join public."REGION" R on R."REG_ID" = "COMUNA"."COM_REG_ID"`, [req.body.AGE_FECHA]);
+            left join public."REGION" R on R."REG_ID" = "COMUNA"."COM_REG_ID"
+           `, [req.body.AGE_FECHA]);
         console.log("Consulta Select Realizada:");
         client.release();
         res.json({ actividad });
@@ -203,7 +203,7 @@ function agendaHora(AGE_ID, client, AH_HOR_ID) {
 actividadRoutes.post('/iniciar', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const client = yield poolConnetion_1.default.connect();
-        const ACT_ID = req.body.ACT_ID;
+        const ACT_ID = +(req.body.ACT_ID);
         const finicio = yield client.query(`UPDATE "ACTIVIDAD"
              SET "ACT_INICIO"=CURRENT_TIMESTAMP
              WHERE "ACT_ID"=$1;`, [ACT_ID]);
@@ -211,7 +211,7 @@ actividadRoutes.post('/iniciar', (req, res) => __awaiter(void 0, void 0, void 0,
                     SET "ACT_ESTADO"=$1
                     WHERE "ACT_ID"=$2;`, ["Iniciada", ACT_ID]);
         client.release();
-        console.log(ACT_ID);
+        console.log("ID BK", ACT_ID);
         console.log("Cambio de estado Inicio con fecha actual :");
     }
     catch (error) {
@@ -268,13 +268,22 @@ actividadRoutes.post('/modal', (req, res) => __awaiter(void 0, void 0, void 0, f
         const client = yield poolConnetion_1.default.connect();
         console.log(req.body);
         const ACT_ID = req.body.ACT_ID;
-        const data_act = yield client.query(`SELECT u."USR_NOMBRES", u."USR_AP_PATERNO",a."ACT_NOMBRE",a."ACT_NOMBRE_SOLICITANTE", a."ACT_DESCRIPCION", 
-            a."ACT_DIRECCION", d."DEP_MONTO" , c."CLI_NOMBRE", a."ACT_ID"
-        FROM "ACTIVIDAD" a, "USUARIO" u, "AGENDA" age, "DEPOSITO" d,  "PROYECTO" p,  "CLIENTE" c
+        const data_act = yield client.query(`SELECT u."USR_NOMBRES", 
+            u."USR_AP_PATERNO",
+            a."ACT_NOMBRE",
+            a."ACT_NOMBRE_SOLICITANTE", 
+            a."ACT_DESCRIPCION", 
+            p."PRO_NOMBRE",
+            (a."ACT_DIRECCION" || ' - ' || CO."COM_NOMBRE") as "ACT_DIRECCION",
+            d."DEP_MONTO" , 
+            c."CLI_NOMBRE", 
+            a."ACT_ID"
+        FROM "ACTIVIDAD" a, "USUARIO" u, "AGENDA" age, "DEPOSITO" d,  "PROYECTO" p,  "CLIENTE" c, "COMUNA" co
             WHERE u."USR_ID" = age."AGE_USR_ID"
             AND a."ACT_AGE_ID"= age."AGE_ID"
             AND d."DEP_ACT_ID"= a."ACT_ID"
             AND a."ACT_PRO_ID"= p."PRO_ID"
+            AND a."ACT_COM_ID"= co."COM_ID"
         AND c."CLI_ID"= p."PRO_CLI_ID"
             AND a."ACT_ID" = $1`, [ACT_ID]);
         client.release();
@@ -291,8 +300,7 @@ actividadRoutes.post('/auditor', (req, res) => __awaiter(void 0, void 0, void 0,
         console.log(req.body);
         const AGE_FECHA = req.body.AGE_FECHA;
         const auditor = yield client.query(`SELECT 
-            U."USR_NOMBRES",
-            U."USR_AP_PATERNO",
+            (U."USR_NOMBRES" || ' ' || U."USR_AP_PATERNO") as "USR_NOMBRES",
             a."ACT_NOMBRE",
             a."ACT_DESCRIPCION",
             a."ACT_NOMBRE_SOLICITANTE",
@@ -319,25 +327,25 @@ actividadRoutes.get('/deposito', (req, res) => __awaiter(void 0, void 0, void 0,
     try {
         const client = yield poolConnetion_1.default.connect();
         console.log(req.body);
-        const deposito = yield client.query(`SELECT 
-            U."USR_NOMBRES",
+        const deposito = yield client.query(`SELECT (U."USR_NOMBRES" || ' ' || U."USR_AP_PATERNO") as "USR_NOMBRES",
             a."ACT_ID",
-            U."USR_AP_PATERNO",
             a."ACT_NOMBRE",
             d."DEP_FECHA",
             d."DEP_ESTADO",
             d."DEP_MONTO",
-            m."MOT_NOMBRE"
-            FROM "ACTIVIDAD" a left join "CALIFICACION" c on a."ACT_ID" = c."CAL_ACT_ID"
-                left join "AGENDA" ag on a."ACT_AGE_ID" = ag."AGE_ID"
-                left join "USUARIO" u on ag."AGE_USR_ID" = u."USR_ID"
-                left join "PROYECTO" p on a."ACT_PRO_ID" = p."PRO_ID"
-                left join "CLIENTE" cl on p ."PRO_CLI_ID" = cl."CLI_ID"
-                left join "DEPOSITO" d on a."ACT_ID" = d."DEP_ACT_ID"
-                left join "DEPOSITO_MOTIVO" dm on d."DEP_ID"= dm."DEM_DEP_ID"
-                left join "MOTIVO" m on dm."DEM_MOT_ID" = m."MOT_ID"
-                LEFT join "TIPO_CALIFICACION" tc on c."CAL_TC_ID" = tc."TC_ID"
-            WHERE "DEP_ESTADO"='Pendiente'`);
+            json_agg("MOT_NOMBRE")
+     FROM "ACTIVIDAD" a
+              left join "CALIFICACION" c on a."ACT_ID" = c."CAL_ACT_ID"
+              left join "AGENDA" ag on a."ACT_AGE_ID" = ag."AGE_ID"
+              left join "USUARIO" u on ag."AGE_USR_ID" = u."USR_ID"
+              left join "PROYECTO" p on a."ACT_PRO_ID" = p."PRO_ID"
+              left join "CLIENTE" cl on p."PRO_CLI_ID" = cl."CLI_ID"
+              left join "DEPOSITO" d on a."ACT_ID" = d."DEP_ACT_ID"
+              left join "DEPOSITO_MOTIVO" dm on d."DEP_ID" = dm."DEM_DEP_ID"
+              left join "MOTIVO" m on dm."DEM_MOT_ID" = m."MOT_ID"
+              LEFT join "TIPO_CALIFICACION" tc on c."CAL_TC_ID" = tc."TC_ID"
+     WHERE "DEP_ESTADO" = 'Pendiente'
+     GROUP BY (U."USR_NOMBRES" || ' ' || U."USR_AP_PATERNO"), a."ACT_ID", a."ACT_NOMBRE", d."DEP_FECHA", d."DEP_ESTADO", d."DEP_MONTO"`);
         client.release();
         res.json({ deposito });
     }
@@ -381,8 +389,10 @@ actividadRoutes.get('/estadistica', (req, res) => __awaiter(void 0, void 0, void
     }
 }));
 actividadRoutes.post('/resdeposito', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("entrando a registrar dep", req.body);
     try {
         const client = yield poolConnetion_1.default.connect();
+        console.log(req.body.ACT_ID);
         const ACT_ID = req.body.ACT_ID;
         const finicio = yield client.query(`UPDATE "DEPOSITO"
              SET "DEP_ESTADO"=$1
@@ -390,6 +400,41 @@ actividadRoutes.post('/resdeposito', (req, res) => __awaiter(void 0, void 0, voi
         client.release();
         console.log(ACT_ID);
         console.log("Cambio de estado realizado:");
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+}));
+actividadRoutes.post('/misactividades', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const client = yield poolConnetion_1.default.connect();
+        console.log(req.body);
+        const USR_ID = +(req.body.USR_ID);
+        const asignacion = yield client.query(`SELECT
+            a."ACT_ID",
+            a."ACT_NOMBRE",
+            (a."ACT_DIRECCION" || ', ' || co."COM_NOMBRE") as "ACT_DIRECCION",
+            d."DEP_FECHA",
+            d."DEP_ESTADO",
+            d."DEP_MONTO",
+            a."ACT_ESTADO",
+            a."ACT_NOMBRE_SOLICITANTE",
+            a."ACT_CORREO_SOLICITANTE",
+            a."ACT_TELEFONO_SOLICITANTE",
+            age."AGE_FECHA",
+            p."PRO_NOMBRE",
+            c."CLI_NOMBRE"
+        FROM "ACTIVIDAD" a, "USUARIO" u, "AGENDA" age, "DEPOSITO" d,  "PROYECTO" p,  "CLIENTE" c, "COMUNA" co
+            WHERE u."USR_ID" = age."AGE_USR_ID"
+            AND a."ACT_AGE_ID"= age."AGE_ID"
+            AND d."DEP_ACT_ID"= a."ACT_ID"
+            AND a."ACT_PRO_ID"= p."PRO_ID"
+        AND c."CLI_ID"= p."PRO_CLI_ID"
+        AND a."ACT_COM_ID"= co."COM_ID"
+            AND u."USR_ID" = $1`, [USR_ID]);
+        client.release();
+        res.json({ asignacion });
     }
     catch (error) {
         console.log(error);
