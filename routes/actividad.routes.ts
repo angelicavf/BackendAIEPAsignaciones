@@ -241,7 +241,7 @@ actividadRoutes.post('/iniciar', async (req: Request, res: Response) => {
         client.release();
         console.log("ID BK", ACT_ID)
         console.log("Cambio de estado Inicio con fecha actual :")
-        res.json({ message:'ok' });
+        res.json({ message: 'ok' });
 
 
 
@@ -303,7 +303,7 @@ actividadRoutes.post('/finalizar', async (req: Request, res: Response) => {
         console.log(ACT_ID)
         console.log("Cambio de estado finalizada con fecha actual :")
         client.release();
-        res.json({ message:'ok' });
+        res.json({ message: 'ok' });
 
 
     } catch (error) {
@@ -359,6 +359,7 @@ actividadRoutes.post('/auditor', async (req: Request, res: Response) => {
             `SELECT 
             (U."USR_NOMBRES" || ' ' || U."USR_AP_PATERNO") as "USR_NOMBRES",
             a."ACT_NOMBRE",
+            a."ACT_ID",
             a."ACT_DESCRIPCION",
             a."ACT_NOMBRE_SOLICITANTE",
             a."ACT_CORREO_SOLICITANTE",
